@@ -4,7 +4,7 @@ A browser fingerprint resistance framework for enhanced online privacy.
 
 ## About
 
-ShadowShield is a Firefox-based privacy project focused on detecting and reducing browser fingerprinting.
+ShadowShield is a privacy project focused on detecting and reducing browser fingerprinting across Firefox and Chromium browsers.
 
 The project aims to monitor information exposed through browser APIs, identify fingerprinting attempts, and apply privacy protections where possible.
 
