@@ -43,3 +43,19 @@ if (gl) {
         ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
         : "Unavailable");
 }
+// Audio fingerprinting
+const audioContext = new AudioContext();
+
+console.log("AudioContext created:", audioContext.state);
+
+const oscillator = audioContext.createOscillator();
+const analyser = audioContext.createAnalyser();
+
+oscillator.connect(analyser);
+
+console.log("Audio analyser created:", analyser);
+
+oscillator.start();
+oscillator.stop();
+
+audioContext.close();
