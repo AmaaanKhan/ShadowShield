@@ -1,0 +1,1 @@
+console.log("ShadowShield popup loaded.");

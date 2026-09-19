@@ -1,0 +1,1 @@
+console.log("ShadowShield background service started.");
