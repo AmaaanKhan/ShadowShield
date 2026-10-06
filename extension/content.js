@@ -18,6 +18,14 @@ window.addEventListener("message", (event) => {
         };
 
         console.log("ShadowShield detection:", detection);
+
+        const extensionAPI =
+            typeof browser !== "undefined" ? browser : chrome;
+
+        extensionAPI.runtime.sendMessage({
+            type: "fingerprint-detection",
+            detection
+        });
     }
 });
 

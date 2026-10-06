@@ -1,9 +1,26 @@
 body {
-    width: 300px;
+    width: 340px;
     padding: 16px;
     font-family: Arial, sans-serif;
 }
 
 h1 {
     margin-top: 0;
+}
+
+h2 {
+    font-size: 16px;
+    margin-top: 20px;
+}
+
+.detection {
+    padding: 10px;
+    margin-bottom: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.detection small {
+    color: #666;
+    word-break: break-all;
 }
