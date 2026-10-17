@@ -121,6 +121,39 @@
     };
 
     installFontHook();
+        // Navigator and screen fingerprinting
+    const monitoredProperties = [
+        [Navigator.prototype, "userAgent", "Navigator.userAgent"],
+        [Navigator.prototype, "language", "Navigator.language"],
+        [Navigator.prototype, "languages", "Navigator.languages"],
+        [Navigator.prototype, "platform", "Navigator.platform"],
+        [Navigator.prototype, "hardwareConcurrency", "Navigator.hardwareConcurrency"],
+        [Navigator.prototype, "deviceMemory", "Navigator.deviceMemory"],
+        [Screen.prototype, "width", "Screen.width"],
+        [Screen.prototype, "height", "Screen.height"],
+        [Screen.prototype, "colorDepth", "Screen.colorDepth"],
+        [Screen.prototype, "pixelDepth", "Screen.pixelDepth"]
+    ];
+
+    for (const [prototype, property, api] of monitoredProperties) {
+        const descriptor =
+            Object.getOwnPropertyDescriptor(prototype, property);
+
+        if (!descriptor || !descriptor.get || !descriptor.configurable) {
+            console.warn(`ShadowShield: Cannot monitor ${api}.`);
+            continue;
+        }
+
+        const originalGetter = descriptor.get;
+
+        Object.defineProperty(prototype, property, {
+            ...descriptor,
+            get: function () {
+                reportDetection(api, "Navigator/Screen");
+                return originalGetter.call(this);
+            }
+        });
+    }
     // Audio fingerprinting
     const installAudioHook = () => {
         const AudioContextClass =
