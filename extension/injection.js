@@ -80,7 +80,47 @@
             return originalGetParameter.apply(this, args);
         };
     }
+        // Font fingerprinting
+    const installFontHook = () => {
+        const canvasPrototype =
+            window.CanvasRenderingContext2D &&
+            window.CanvasRenderingContext2D.prototype;
 
+        if (!canvasPrototype) {
+            return false;
+        }
+
+        const originalMeasureText = canvasPrototype.measureText;
+
+        if (originalMeasureText.__shadowShieldHooked) {
+            return true;
+        }
+
+        const hookedMeasureText = function (...args) {
+            console.log(
+                "ShadowShield detected measureText:",
+                args[0]
+            );
+
+            reportDetection("Canvas.measureText", "Font");
+
+            return originalMeasureText.apply(this, args);
+        };
+
+        hookedMeasureText.__shadowShieldHooked = true;
+
+        Object.defineProperty(canvasPrototype, "measureText", {
+            value: hookedMeasureText,
+            configurable: true,
+            writable: true
+        });
+
+        console.log("ShadowShield font hook installed.");
+
+        return true;
+    };
+
+    installFontHook();
     // Audio fingerprinting
     const installAudioHook = () => {
         const AudioContextClass =

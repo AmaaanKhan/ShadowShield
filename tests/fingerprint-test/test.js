@@ -29,6 +29,26 @@ ctx.fillText("ShadowShield fingerprint test", 10, 10);
 
 console.log("Canvas fingerprint:", canvas.toDataURL());
 
+// Font fingerprinting
+const fontCanvas = document.createElement("canvas");
+const fontContext = fontCanvas.getContext("2d");
+
+const testFonts = [
+    "Arial",
+    "Times New Roman",
+    "Courier New",
+    "monospace"
+];
+
+for (const font of testFonts) {
+    fontContext.font = `16px "${font}"`;
+
+    console.log(
+        `Font measurement (${font}):`,
+        fontContext.measureText("ShadowShield font test").width
+    );
+}
+
 // WebGL fingerprinting
 const gl = document.createElement("canvas").getContext("webgl");
 

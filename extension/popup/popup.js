@@ -29,10 +29,11 @@ function displaySummary(detections) {
 
     summary.innerHTML = `
         <p>Total detections: <strong>${detections.length}</strong></p>
-        <p>
+                <p>
             Canvas: ${counts.Canvas || 0}<br>
             WebGL: ${counts.WebGL || 0}<br>
-            Audio: ${counts.Audio || 0}
+            Audio: ${counts.Audio || 0}<br>
+            Font: ${counts.Font || 0}
         </p>
     `;
 }
