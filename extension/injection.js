@@ -28,15 +28,58 @@
         HTMLCanvasElement.prototype.getContext;
 
     HTMLCanvasElement.prototype.getContext = function (...args) {
-        if (args[0] === "webgl" || args[0] === "webgl2") {
+        const context = originalGetContext.apply(this, args);
+
+        if (
+            context &&
+            (args[0] === "webgl" ||
+                args[0] === "webgl2" ||
+                args[0] === "experimental-webgl")
+        ) {
             reportDetection(
                 `Canvas.getContext(${args[0]})`,
                 "WebGL"
             );
+
+            installWebGLHooks(context);
         }
 
-        return originalGetContext.apply(this, args);
+        return context;
     };
+
+    const hookedWebGLContexts = new WeakSet();
+
+    function installWebGLHooks(gl) {
+        if (hookedWebGLContexts.has(gl)) {
+            return;
+        }
+
+        hookedWebGLContexts.add(gl);
+
+        // Detect requests for WebGL extensions
+        const originalGetExtension = gl.getExtension;
+
+        gl.getExtension = function (...args) {
+            reportDetection(
+                "WebGL.getExtension",
+                "WebGL"
+            );
+
+            return originalGetExtension.apply(this, args);
+        };
+
+        // Detect requests for graphics parameters
+        const originalGetParameter = gl.getParameter;
+
+        gl.getParameter = function (...args) {
+            reportDetection(
+                "WebGL.getParameter",
+                "WebGL"
+            );
+
+            return originalGetParameter.apply(this, args);
+        };
+    }
 
     // Audio fingerprinting
     const installAudioHook = () => {
