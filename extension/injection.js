@@ -149,11 +149,15 @@
         Object.defineProperty(prototype, property, {
             ...descriptor,
             get: function () {
-                reportDetection(api, "Navigator/Screen");
+                if (!window.__shadowShieldInternalRead) {
+                    reportDetection(api, "Navigator/Screen");
+                }
+
                 return originalGetter.call(this);
             }
         });
     }
+       
     // Audio fingerprinting
     const installAudioHook = () => {
         const AudioContextClass =

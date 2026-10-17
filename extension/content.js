@@ -29,6 +29,8 @@ window.addEventListener("message", (event) => {
     }
 });
 
+window.__shadowShieldInternalRead = true;
+
 const fingerprintSignals = {
     screen: {
         width: screen.width,
@@ -49,6 +51,7 @@ const fingerprintSignals = {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
 };
 
+window.__shadowShieldInternalRead = false;
 console.log(
     "ShadowShield fingerprint signals:",
     fingerprintSignals
