@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShadowShield</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <header>
+        <h1>ShadowShield</h1>
+        <p id="status" class="status">Tracker protection</p>
+    </header>
+
+    <section class="count" aria-live="polite">
+        <span id="count" class="count-number">–</span>
+        <span id="count-label" class="count-label">Checking this page…</span>
+    </section>
+
+    <section class="controls">
+        <label class="row" id="site-row">
+            <span class="row-text">
+                <span class="row-title">Protect this site</span>
+                <span class="row-sub" id="site-name">–</span>
+            </span>
+            <input type="checkbox" role="switch" id="site-toggle">
+        </label>
+
+        <label class="row">
+            <span class="row-text">
+                <span class="row-title">Block trackers everywhere</span>
+                <span class="row-sub">Turn off to pause all blocking</span>
+            </span>
+            <input type="checkbox" role="switch" id="global-toggle">
+        </label>
+    </section>
+
+    <p id="error" class="error" role="alert" hidden></p>
+    <p id="list-info" class="list-info"></p>
+
+    <script src="popup.js"></script>
+</body>
+</html>

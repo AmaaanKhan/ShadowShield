@@ -1,0 +1,23 @@
+node_modules/
+.env
+.env.*
+dist/
+build/
+.next/
+coverage/
+
+*.log
+
+.DS_Store
+Thumbs.db
+
+.vscode/*
+!.vscode/extensions.json
+
+*.sqlite
+*.sqlite3
+
+*.pem
+*.key
+# Downloaded filter lists (regenerate with npm run build:rules)
+tools/lists/
