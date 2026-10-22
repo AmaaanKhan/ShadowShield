@@ -1,0 +1,15 @@
+{
+  "name": "shadowshield",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Browser fingerprint resistance and tracker protection.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build:rules": "node tools/build-rules.mjs",
+    "check-url": "node tools/check-url.mjs",
+    "test": "node --test tools/test/convert.test.mjs"
+  }
+}

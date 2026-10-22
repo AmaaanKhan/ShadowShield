@@ -1,0 +1,26 @@
+/* Tracker protection section of the popup. Reuses the .detection box style
+   from popup.css; this file only adds what that style does not cover. */
+
+.tracker-row {
+    display: block;
+    margin: 6px 0;
+}
+
+.tracker-row input {
+    margin-right: 6px;
+}
+
+.tracker-row.disabled {
+    opacity: 0.5;
+}
+
+.tracker-error {
+    color: #9b2c2c;
+    font-size: 13px;
+}
+
+#list-info {
+    display: block;
+    margin-top: 6px;
+    color: #666;
+}
