@@ -1,5 +1,57 @@
 console.log("Fingerprint test started.");
 
+
+console.log("=== Device and Browser Information ===");
+
+console.log("CPU cores:", navigator.hardwareConcurrency);
+console.log("Reported device memory (GB):", navigator.deviceMemory ?? "Unavailable");
+console.log("Operating system/platform:", navigator.platform);
+console.log("Browser user-agent:", navigator.userAgent);
+console.log("Browser vendor:", navigator.vendor);
+console.log("Preferred languages:", navigator.languages);
+console.log("Touch points:", navigator.maxTouchPoints);
+console.log("Automation indicator:", navigator.webdriver);
+
+console.log("=== Display Information ===");
+
+console.log("Screen dimensions:", `${screen.width} × ${screen.height}`);
+console.log("Available screen area:", `${screen.availWidth} × ${screen.availHeight}`);
+console.log("Color depth:", screen.colorDepth);
+console.log("Device pixel ratio:", window.devicePixelRatio);
+
+console.log("=== System Settings ===");
+
+console.log(
+    "Timezone:",
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+);
+
+console.log(
+    "UTC offset (minutes):",
+    new Date().getTimezoneOffset()
+);
+
+async function testBrowserArchitecture() {
+    if (!navigator.userAgentData) {
+        console.log("Architecture/bitness: Not exposed by this browser.");
+        return;
+    }
+
+    try {
+        const info = await navigator.userAgentData.getHighEntropyValues([
+            "architecture",
+            "bitness",
+            "platformVersion"
+        ]);
+
+        console.log("Browser platform hints:", info);
+    } catch (error) {
+        console.log("Browser platform hints unavailable:", error.message);
+    }
+}
+
+testBrowserArchitecture();
+
 console.log("Screen:", {
     width: screen.width,
     height: screen.height,
