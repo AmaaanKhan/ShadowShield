@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "ShadowShield",
     "version": "0.2.0",
-    "description": "Blocks known trackers and detects browser fingerprinting.",
+    "description": "Blocks known trackers and ads, and detects browser fingerprinting.",
     "permissions": [
         "tabs",
         "storage",
@@ -26,6 +26,11 @@
                 "id": "trackers",
                 "enabled": true,
                 "path": "rules/trackers.json"
+            },
+            {
+                "id": "ads",
+                "enabled": true,
+                "path": "rules/ads.json"
             }
         ]
     },

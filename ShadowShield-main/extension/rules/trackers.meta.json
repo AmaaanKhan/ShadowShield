@@ -1,11 +1,12 @@
 {
   "name": "EasyPrivacy",
+  "ruleset": "trackers",
   "listVersion": "202609301814",
   "listLastModified": "30 Sep 2026 18:14 UTC",
   "source": "https://easylist.to/easylist/easyprivacy.txt",
   "license": "GPL-3.0-or-later OR CC-BY-SA-3.0-or-later",
   "attribution": "The EasyList authors (https://easylist.to/)",
-  "builtAt": "2026-09-30T18:28:27.101Z",
+  "builtAt": "2026-10-21T18:54:06.394Z",
   "rules": 9143,
   "blockRules": 8310,
   "allowRules": 833,

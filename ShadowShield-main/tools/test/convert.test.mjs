@@ -119,3 +119,31 @@ test("built rules file: valid, and blocks well-known trackers only", { skip: !ex
         assert.ok(!isBlocked(built, req(url, "script", page)), url);
     }
 });
+
+// Runs only when the ad rules have been generated (npm run build:rules).
+const adsPath = path.join(here, "../../extension/rules/ads.json");
+test("built ads file: valid, blocks ad networks, leaves normal sites alone", { skip: !existsSync(adsPath) }, () => {
+    const ads = JSON.parse(readFileSync(adsPath, "utf8"));
+    assert.deepEqual(validateRules(ads, { maxRules: 14500 }), []);
+    const page = "https://news.example.org";
+    for (const url of [
+        "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js",
+        "https://securepubads.g.doubleclick.net/tag/js/gpt.js",
+        "https://c.amazon-adsystem.com/aax2/apstag.js"
+    ]) {
+        assert.ok(isBlocked(ads, req(url, "script", page)), url);
+    }
+    for (const url of [
+        "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+        "https://fonts.googleapis.com/css?family=Roboto",
+        "https://www.example.org/app.js"
+    ]) {
+        assert.ok(!isBlocked(ads, req(url, "script", page)), url);
+    }
+});
+
+test("trackers and ads together stay inside the shared 30,000 rule limit", { skip: !existsSync(adsPath) || !existsSync(builtPath) }, () => {
+    const trackers = JSON.parse(readFileSync(builtPath, "utf8"));
+    const ads = JSON.parse(readFileSync(adsPath, "utf8"));
+    assert.ok(trackers.length + ads.length <= 30000, `${trackers.length + ads.length} rules`);
+});

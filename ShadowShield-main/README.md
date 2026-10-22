@@ -12,7 +12,7 @@ It will also provide users with visibility into what websites can access and how
 
 ## Planned Features
 
-- Tracker protection (available now, see below)
+- Tracker and ad blocking (available now, see below)
 - Fingerprinting detection
 - Browser API monitoring
 - Fingerprint resistance and attribute normalization
@@ -23,25 +23,34 @@ It will also provide users with visibility into what websites can access and how
 - Fingerprint before/after comparison
 - Privacy dashboard
 
-## Tracker protection
+## Tracker and ad blocking
 
-ShadowShield blocks requests to known trackers using the EasyPrivacy list. The
-browser enforces the rules itself (`declarativeNetRequest`), so no page content
-is read or sent anywhere. It works in Firefox 128+ and Chrome 111+.
+ShadowShield blocks requests to known trackers (EasyPrivacy list) and known ad
+networks (EasyList). The browser enforces the rules itself
+(`declarativeNetRequest`), so no page content is read or sent anywhere. It works
+in Firefox 128+ and Chrome 111+.
 
-- Global on/off and per-site on/off in the toolbar popup
-- Blocked count for the current page (Chrome shows it on the toolbar icon too)
-- Rules live in `extension/rules/trackers.json`, generated from the list
+- Separate switches for trackers and ads, plus a per-site switch, in the popup
+- Blocked counts for the current page (Chrome shows a total on the toolbar icon)
+- Rules live in `extension/rules/trackers.json` and `extension/rules/ads.json`,
+  generated from the lists
 
-### Update the blocklist
+What it cannot do (Manifest V3 limits): remove ads served from the same place as
+the page's own content (such as YouTube video ads) or hide the empty space a
+blocked ad leaves behind.
+
+### Update the blocklists
 
 ```
-npm run build:rules                      # downloads the latest EasyPrivacy
-npm run build:rules -- --input file.txt  # or use a file you already have
+npm run build:rules                                   # downloads both lists
+npm run build:rules -- --only ads                     # just EasyList
+npm run build:rules -- --only ads --input list.txt    # use a file you already have
 ```
 
 Needs Node.js 18 or newer. The script prints how many rules were written and
-which filters could not be converted.
+which filters could not be converted. Chrome and Firefox guarantee 30,000 static
+rules per extension in total, so the two lists share that budget (the script
+stops you if they go over).
 
 ### Check why a URL is (not) blocked
 
@@ -62,8 +71,9 @@ npm test
 - **Firefox:** open `about:debugging#/runtime/this-firefox`, click
   "Load Temporary Add-on" and choose `extension/manifest.json`.
 
-Then serve `tests/tracker-test` (`python -m http.server 8000` inside it), open
-`http://localhost:8000`, and every tracker row should say "blocked".
+Then serve `tests/tracker-test` or `tests/ad-test` (`python -m http.server 8000`
+inside the folder), open `http://localhost:8000`, and every row for a tracker or
+ad network should say "blocked".
 
 The blocked count in the popup relies on browser features that Firefox only
 enables for developers: set `extensions.dnr.feedback` to `true` in

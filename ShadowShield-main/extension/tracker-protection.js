@@ -1,8 +1,10 @@
-// ShadowShield tracker protection (background side).
+// ShadowShield tracker and ad blocking (background side).
 //
 // The browser does the actual blocking using the rules in rules/trackers.json
-// (declarativeNetRequest). This script only applies the user's settings:
-//   - global on/off       -> enable or disable that rule file
+// (declarativeNetRequest): rules/trackers.json (EasyPrivacy) and
+// rules/ads.json (EasyList). This script only applies the user's settings:
+//   - trackers on/off     -> enable or disable rules/trackers.json
+//   - ads on/off          -> enable or disable rules/ads.json
 //   - per-site "off"      -> a dynamic rule that allows everything on that site
 //
 // It keeps no state in memory (Chrome may stop the background at any time),
@@ -15,25 +17,35 @@
     const api = globalThis.browser ?? globalThis.chrome;
     const dnr = api.declarativeNetRequest;
 
-    const RULESET_ID = "trackers";
-    const DEFAULT_SETTINGS = { enabled: true, allowedSites: [] };
-    const MESSAGE_TYPES = new Set(["get-state", "set-enabled", "set-site-allowed"]);
+    // ruleset id (from manifest.json) -> the setting that turns it on or off
+    const RULESET_SETTINGS = { trackers: "enabled", ads: "adsEnabled" };
+    const DEFAULT_SETTINGS = { enabled: true, adsEnabled: true, allowedSites: [] };
+    const MESSAGE_TYPES = new Set([
+        "get-state", "set-enabled", "set-ads-enabled", "set-site-allowed"
+    ]);
 
     async function getSettings() {
         const stored = await api.storage.local.get(DEFAULT_SETTINGS);
         return {
             enabled: stored.enabled !== false,
+            adsEnabled: stored.adsEnabled !== false,
             allowedSites: Array.isArray(stored.allowedSites) ? stored.allowedSites : []
         };
     }
 
-    async function applyEnabled(enabled) {
+    async function applyRulesets(settings) {
         const current = await dnr.getEnabledRulesets();
-        const isOn = current.includes(RULESET_ID);
-        if (enabled === isOn) return;
-        await dnr.updateEnabledRulesets(
-            enabled ? { enableRulesetIds: [RULESET_ID] }
-                    : { disableRulesetIds: [RULESET_ID] });
+        const enableRulesetIds = [];
+        const disableRulesetIds = [];
+        for (const [id, setting] of Object.entries(RULESET_SETTINGS)) {
+            const wanted = settings[setting];
+            const isOn = current.includes(id);
+            if (wanted && !isOn) enableRulesetIds.push(id);
+            if (!wanted && isOn) disableRulesetIds.push(id);
+        }
+        if (enableRulesetIds.length || disableRulesetIds.length) {
+            await dnr.updateEnabledRulesets({ enableRulesetIds, disableRulesetIds });
+        }
     }
 
     // Sites the user turned protection off for. One "allowAllRequests" rule per
@@ -53,7 +65,7 @@
 
     async function reconcile() {
         const settings = await getSettings();
-        await applyEnabled(settings.enabled);
+        await applyRulesets(settings);
         await applySiteRules(settings.allowedSites);
     }
 
@@ -81,7 +93,14 @@
         if (message.type === "set-enabled") {
             settings.enabled = !!message.value;
             await api.storage.local.set({ enabled: settings.enabled });
-            await applyEnabled(settings.enabled);
+            await applyRulesets(settings);
+            return settings;
+        }
+
+        if (message.type === "set-ads-enabled") {
+            settings.adsEnabled = !!message.value;
+            await api.storage.local.set({ adsEnabled: settings.adsEnabled });
+            await applyRulesets(settings);
             return settings;
         }
 
