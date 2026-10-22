@@ -6,9 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShadowShield</title>
     <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="tracker-controls.css">
 </head>
 <body>
     <h1>ShadowShield</h1>
+
+    <h2>Tracker &amp; Ad Blocking</h2>
+    <div class="detection" id="tracker-box">
+        <p id="tracker-summary">Checking this page...</p>
+        <label class="tracker-row">
+            <input type="checkbox" id="global-toggle">
+            Block trackers everywhere
+        </label>
+        <label class="tracker-row">
+            <input type="checkbox" id="ads-toggle">
+            Block ads everywhere
+        </label>
+        <label class="tracker-row">
+            <input type="checkbox" id="site-toggle">
+            Protect <strong id="site-name">this site</strong>
+        </label>
+        <p id="tracker-error" class="tracker-error" role="alert" hidden></p>
+        <small id="list-info"></small>
+    </div>
 
     <h2>Current Website</h2>
     <div id="current-site">Loading...</div>
@@ -27,6 +47,7 @@
     <h2>Recent Detections</h2>
     <div id="detections">Loading...</div>
 
+    <script src="tracker-controls.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>

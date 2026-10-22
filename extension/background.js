@@ -1,3 +1,6 @@
+// Chrome loads tracker-protection.js here; Firefox loads it via manifest "background.scripts".
+if (typeof importScripts === "function") importScripts("tracker-protection.js");
+
 console.log("ShadowShield background service started.");
 
 const extensionAPI =
