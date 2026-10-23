@@ -38,7 +38,7 @@ The current demonstration profile configures these JavaScript-visible properties
 | Preferred languages | `ru-RU`, `ru`, `en-US`, `en` |
 | Reported timezone | `Europe/Moscow` |
 
-These values describe the configured profile, not a complete transformation of the underlying operating system or every browser signal.
+Profile values are defined in `src/shared/profiles.js` (single source of truth). The popup reads from the same file, so what you see in the UI always matches what is actually spoofed.
 
 ### Timezone and Locale Normalization
 
@@ -57,49 +57,91 @@ A local test page is included for experimenting with browser-visible fingerprint
 ## Repository Structure
 
     ShadowShield/
-    ├── extension/
+    ├── src/
     │   ├── manifest.json
-    │   ├── background.js
-    │   ├── content.js
-    │   ├── injection.js
-    │   └── popup/
-    │       ├── popup.html
-    │       ├── popup.css
-    │       └── popup.js
-    └── tests/
-        └── fingerprint-test/
-            ├── index.html
-            └── test.js
+    │   ├── background/
+    │   │   └── index.js
+    │   ├── content/
+    │   │   └── bridge.js
+    │   ├── inject/
+    │   │   ├── index.js          ← bootstrap
+    │   │   ├── core/
+    │   │   │   ├── hook.js
+    │   │   │   ├── report.js
+    │   │   │   └── debug.js
+    │   │   └── modules/
+    │   │       ├── index.js      ← ordered registry
+    │   │       ├── canvas.js
+    │   │       ├── webgl.js
+    │   │       ├── fonts.js
+    │   │       ├── navigator-screen.js
+    │   │       ├── display.js
+    │   │       ├── timezone.js
+    │   │       ├── client-hints.js
+    │   │       └── audio.js
+    │   ├── popup/
+    │   │   ├── popup.html
+    │   │   ├── popup.css
+    │   │   └── popup.js
+    │   └── shared/
+    │       └── profiles.js       ← protection profile (single source of truth)
+    ├── scripts/
+    │   └── build.mjs
+    ├── tests/
+    │   └── pages/
+    │       └── fingerprint-test/
+    │           ├── index.html
+    │           └── test.js
+    └── docs/
+        ├── ARCHITECTURE.md
+        ├── COVERAGE.md
+        └── ADDING_A_MODULE.md
 
 ## Requirements
 
 - Mozilla Firefox for the primary development workflow
 - Git
-- Node.js and npm for serving the local test page
-- Internet access to test against BrowserLeaks
+- Node.js ≥ 20 and npm
 
-No backend server or database is required for the basic extension prototype.
+No backend server or database is required.
 
-## Installation in Firefox
+## Installation
+
+### From source (development)
 
 1. Clone the repository:
 
        git clone https://github.com/AmaaanKhan/ShadowShield.git
        cd ShadowShield
 
-2. Open Firefox and navigate to:
+2. Install dependencies:
+
+       npm install
+
+3. Build the extension:
+
+       npm run build
+
+4. Open Firefox and navigate to:
 
        about:debugging#/runtime/this-firefox
 
-3. Select **Load Temporary Add-on**.
+5. Select **Load Temporary Add-on**.
 
-4. Select the file:
+6. Select the file:
 
-       extension/manifest.json
+       dist/manifest.json
 
-5. Open a website and click the ShadowShield toolbar icon to inspect the popup.
+7. Open a website and click the ShadowShield toolbar icon to inspect the popup.
 
 Temporary add-ons generally need to be loaded again after Firefox restarts.
+
+### Development mode (watch + auto-reload)
+
+    npm run dev
+
+This enables the debug console output and rebuilds on every file change.
+Use `web-ext run` separately if you want automatic Firefox reload.
 
 ## Testing
 
@@ -127,13 +169,30 @@ Use the same browser and test page for both runs. Results can vary with browser 
 
 From the repository root, run:
 
-    npx http-server tests/fingerprint-test -p 8000
+    npx http-server tests/pages/fingerprint-test -p 8000
 
 Keep the terminal open and visit:
 
 http://127.0.0.1:8000
 
-The server is intended for local development and testing.
+### Lint and build
+
+    npm run lint
+    npm run build
+
+## Contributing
+
+See [AGENTS.md](AGENTS.md) for contributor and agent rules, and [docs/ADDING_A_MODULE.md](docs/ADDING_A_MODULE.md) for the step-by-step guide to adding a new hook.
+
+When reporting an issue, include:
+
+- Browser name and version
+- Operating system
+- Steps to reproduce
+- Expected and observed behavior
+- Relevant console errors
+
+Avoid reporting a property as successfully spoofed until its behavior has been independently verified.
 
 ## Technical Notes and Limitations
 
@@ -146,30 +205,6 @@ The server is intended for local development and testing.
 - Firefox is the primary development target. Chromium compatibility has not been comprehensively verified.
 - Recorded activity depends on which instrumented APIs websites access and which events the extension successfully receives.
 - This project is an educational prototype, not a replacement for browser-native privacy protections.
-
-## Development
-
-Check the working tree:
-
-    git status
-
-Check changes for whitespace errors:
-
-    git diff --check
-
-Run the local fingerprint test page and verify the extension manually in Firefox before submitting changes.
-
-## Contributing
-
-When reporting an issue, include:
-
-- Browser name and version
-- Operating system
-- Steps to reproduce
-- Expected and observed behavior
-- Relevant console errors
-
-Avoid reporting a property as successfully spoofed until its behavior has been independently verified.
 
 ## License
 
