@@ -8,6 +8,8 @@ coverage/
 
 *.log
 
+artifacts/
+
 .DS_Store
 Thumbs.db
 

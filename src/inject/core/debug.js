@@ -19,12 +19,14 @@
 
 export function log(...args) {
     if (typeof __SHADOWSHIELD_DEBUG__ !== "undefined" && __SHADOWSHIELD_DEBUG__) {
+        // eslint-disable-next-line no-console
         console.log("[ShadowShield]", ...args);
     }
 }
 
 export function warn(...args) {
     if (typeof __SHADOWSHIELD_DEBUG__ !== "undefined" && __SHADOWSHIELD_DEBUG__) {
+        // eslint-disable-next-line no-console
         console.warn("[ShadowShield]", ...args);
     }
 }

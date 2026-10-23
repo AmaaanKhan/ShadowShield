@@ -6,7 +6,6 @@
  */
 
 import { hookMethod } from "../core/hook.js";
-import { reportDetection } from "../core/report.js";
 
 /** @type {import("../index.js").Module} */
 export const canvas = {

@@ -8,6 +8,45 @@ The project explores how websites collect browser and device characteristics and
 
 > **Project status:** Experimental prototype. ShadowShield does not prevent all fingerprinting techniques or guarantee anonymity.
 
+## New here? Start with this
+
+**What this is:** a Firefox extension that spots websites trying to fingerprint your browser and changes what they can see. If you know plain HTML, CSS and JavaScript, you already know almost everything you need.
+
+**The only new idea:** instead of one giant `script.js`, the code is many small JS files that each do one job. A build tool glues them into one file for the browser. You edit the small files. Two new keywords: `export` means "let other files use this", and `import` means "bring in something from another file". It works like `<script src="...">`, except every file keeps its own variables, so two people can use the same name without clashing.
+
+### Where do I work?
+
+| I want to… | Work in | What it feels like |
+|---|---|---|
+| Change how the popup looks | `src/popup/` | Normal HTML, CSS and JS |
+| Add or improve a protection | `src/inject/modules/` | One small JS file per protection |
+| Change what gets spoofed | `src/shared/profiles.js` | A plain object of values |
+| Block trackers (future) | `src/blocking/` | New folder, nothing else needs to change |
+
+Pick **one** of these per change. They rarely touch the same files, so several people can work at once.
+
+### Your everyday loop
+
+1. Edit a file inside `src/`. **Never edit `dist/`.** It is generated and gets overwritten.
+2. Run `npm run build`. Or run `npm run dev` and leave it running; it rebuilds every time you save.
+3. In Firefox, open `about:debugging#/runtime/this-firefox`, find ShadowShield and click **Reload**.
+4. Try it on the local test page (see Testing below) or on https://browserleaks.com/javascript.
+
+First time only: `npm install`, then load `dist/manifest.json` as described under Installation.
+
+### Files you can ignore
+
+`dist/`, `node_modules/`, `.git/` and `package-lock.json` are created automatically. The dotfiles (`.github`, `.editorconfig`, `.prettierrc`, …), `eslint.config.mjs`, `scripts/` and `package.json` are settings that already work. `LICENSE`, `CHANGELOG.md` and `AGENTS.md` are reference.
+
+### Your first 15 minutes
+
+- **Interface person:** change a colour in `src/popup/popup.css`, rebuild, reload the extension, open the popup and see it.
+- **Protection person:** copy `src/inject/modules/display.js` (the smallest module) to a new file, rename it, add one `import` and one line in `src/inject/modules/index.js`, rebuild and watch it appear in the popup. Don't commit this practice file.
+
+### Adding a real feature
+
+Copy an existing module and change it; they all share the same shape. Then follow [docs/ADDING_A_MODULE.md](docs/ADDING_A_MODULE.md). Before you start, read [CONTRIBUTING.md](CONTRIBUTING.md) and the page in [docs/modules/](docs/modules/) for the area you are touching.
+
 ## Features
 
 ### Fingerprint Detection
@@ -48,7 +87,7 @@ This implementation is incomplete. Other local date getters, browser internals, 
 
 ### Popup Dashboard
 
-The extension popup provides a view of recorded fingerprint activity, including the current website, frequently observed websites, category summaries, and recent detections.
+The extension popup provides a view of recorded fingerprint activity, including the current website, frequently observed websites, category summaries, and recent detections. The data is stored as website names and counts only (never full page addresses), and a **Clear data** button wipes it.
 
 ### Local Fingerprint Test Page
 
@@ -60,7 +99,8 @@ A local test page is included for experimenting with browser-visible fingerprint
     ├── src/
     │   ├── manifest.json
     │   ├── background/
-    │   │   └── index.js
+    │   │   ├── index.js          ← receives batches, writes storage
+    │   │   └── event-store.js    ← pure aggregation logic (no browser APIs)
     │   ├── content/
     │   │   └── bridge.js
     │   ├── inject/
@@ -84,7 +124,8 @@ A local test page is included for experimenting with browser-visible fingerprint
     │   │   ├── popup.css
     │   │   └── popup.js
     │   └── shared/
-    │       └── profiles.js       ← protection profile (single source of truth)
+    │       ├── profiles.js       ← protection profile (single source of truth)
+    │       └── detection-schema.js ← shape rules for detection events
     ├── scripts/
     │   └── build.mjs
     ├── tests/
@@ -92,10 +133,15 @@ A local test page is included for experimenting with browser-visible fingerprint
     │       └── fingerprint-test/
     │           ├── index.html
     │           └── test.js
-    └── docs/
-        ├── ARCHITECTURE.md
-        ├── COVERAGE.md
-        └── ADDING_A_MODULE.md
+    ├── docs/
+    │   ├── ARCHITECTURE.md
+    │   ├── COVERAGE.md
+    │   ├── ADDING_A_MODULE.md
+    │   ├── STATUS.md             ← current progress, decisions, next step
+    │   ├── modules/              ← one plain-language page per module
+    │   └── decisions/            ← short "why we chose this" notes
+    ├── CHANGELOG.md
+    └── CONTRIBUTING.md
 
 ## Requirements
 
@@ -182,7 +228,14 @@ http://127.0.0.1:8000
 
 ## Contributing
 
-See [AGENTS.md](AGENTS.md) for contributor and agent rules, and [docs/ADDING_A_MODULE.md](docs/ADDING_A_MODULE.md) for the step-by-step guide to adding a new hook.
+| Read this | When |
+|---|---|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Before your first change: the three lanes, the workflow, where things get written down |
+| [docs/ADDING_A_MODULE.md](docs/ADDING_A_MODULE.md) | Adding a new protection |
+| [docs/modules/](docs/modules/) | How an existing module works and what its limits are |
+| [docs/decisions/](docs/decisions/) | Why something was built the way it was |
+| [docs/STATUS.md](docs/STATUS.md) | Where the project stands and what is next |
+| [AGENTS.md](AGENTS.md) | The rules every change must follow (also used by AI coding agents) |
 
 When reporting an issue, include:
 

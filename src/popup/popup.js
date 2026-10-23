@@ -11,7 +11,14 @@ import { getProfileDisplayRows } from "../shared/profiles.js";
 const extensionAPI =
     typeof browser !== "undefined" ? browser : chrome;
 
-let allDetections = [];
+/**
+ * Aggregated data from storage (see docs/ARCHITECTURE.md, Storage Schema).
+ * @type {Record<string, {lastSeen: number, apis: Record<string, {category: string, count: number, firstSeen: number, lastSeen: number}>}>}
+ */
+let stats = {};
+
+/** @type {Array<{origin: string, api: string, category: string, count: number, timestamp: number}>} */
+let recent = [];
 
 
 function displayProtectionProfile() {
@@ -88,9 +95,16 @@ const friendlyNames = {
     "Canvas.getContext(experimental-webgl)": "Experimental WebGL access"
 };
 
+/** Own-property lookup, so names like "constructor" never hit Object.prototype. */
+function lookup(table, key) {
+    return Object.prototype.hasOwnProperty.call(table, key)
+        ? table[key]
+        : undefined;
+}
+
 function friendlyName(api) {
     if (!api) return "Unknown activity";
-    if (friendlyNames[api]) return friendlyNames[api];
+    if (lookup(friendlyNames, api)) return lookup(friendlyNames, api);
 
     if (api.startsWith("Browser identity hint:")) {
         const hint = api.split(":").slice(1).join(":").trim();
@@ -101,7 +115,7 @@ function friendlyName(api) {
             model: "Device model hint",
             fullVersionList: "Browser version details"
         };
-        return names[hint] || `Browser identity: ${hint}`;
+        return lookup(names, hint) || `Browser identity: ${hint}`;
     }
 
     return api;
@@ -109,7 +123,10 @@ function friendlyName(api) {
 
 function getOrigin(url) {
     try {
-        return new URL(url).origin;
+        const parsed = new URL(url);
+        return parsed.protocol === "http:" || parsed.protocol === "https:"
+            ? parsed.origin
+            : null;
     } catch {
         return null;
     }
@@ -123,17 +140,51 @@ function getHostname(origin) {
     }
 }
 
+function siteTotal(site) {
+    return Object.values(site.apis).reduce((sum, e) => sum + e.count, 0);
+}
+
+/** Merge stats (all sites, or one origin) into [{ api, category, count }]. */
+function collectEntries(selected) {
+    const merged = new Map();
+    const origins = selected === "all" ? Object.keys(stats) : [selected];
+
+    for (const origin of origins) {
+        const site = stats[origin];
+        if (!site) continue;
+
+        for (const [api, entry] of Object.entries(site.apis)) {
+            const key = `${entry.category}\u0000${api}`;
+            const existing = merged.get(key);
+
+            if (existing) {
+                existing.count += entry.count;
+            } else {
+                merged.set(key, {
+                    api,
+                    category: entry.category,
+                    count: entry.count
+                });
+            }
+        }
+    }
+
+    return [...merged.values()];
+}
+
 async function loadDetections() {
     displayProtectionProfile();
+
     const [stored, tabs] = await Promise.all([
-        extensionAPI.storage.local.get({ detections: [] }),
+        extensionAPI.storage.local.get({ stats: {}, recent: [] }),
         extensionAPI.tabs.query({
             active: true,
             currentWindow: true
         })
     ]);
 
-    allDetections = stored.detections;
+    stats = stored.stats || {};
+    recent = Array.isArray(stored.recent) ? stored.recent : [];
 
     const currentOrigin = getOrigin(tabs[0]?.url);
 
@@ -158,9 +209,9 @@ function displayCurrentSite(origin) {
     const heading = document.createElement("strong");
     heading.textContent = getHostname(origin);
 
-    const count = allDetections.filter(
-        (d) => getOrigin(d.url) === origin
-    ).length;
+    const count = Object.prototype.hasOwnProperty.call(stats, origin)
+        ? siteTotal(stats[origin])
+        : 0;
 
     const details = document.createElement("p");
     details.textContent = count
@@ -174,28 +225,13 @@ function displayTopSites() {
     const container = document.getElementById("top-sites");
     container.replaceChildren();
 
-    const counts = new Map();
-
-    for (const detection of allDetections) {
-        const origin = getOrigin(detection.url);
-        if (!origin) continue;
-
-        const entry = counts.get(origin) || { count: 0, latest: 0 };
-        entry.count++;
-
-        const timestamp = Date.parse(detection.timestamp);
-        if (Number.isFinite(timestamp)) {
-            entry.latest = Math.max(entry.latest, timestamp);
-        }
-
-        counts.set(origin, entry);
-    }
-
-    const topSites = [...counts.entries()]
-        .sort((a, b) =>
-            b[1].count - a[1].count ||
-            b[1].latest - a[1].latest
-        )
+    const topSites = Object.entries(stats)
+        .map(([origin, site]) => ({
+            origin,
+            count: siteTotal(site),
+            latest: site.lastSeen || 0
+        }))
+        .sort((a, b) => b.count - a.count || b.latest - a.latest)
         .slice(0, 3);
 
     if (!topSites.length) {
@@ -203,15 +239,15 @@ function displayTopSites() {
         return;
     }
 
-    for (const [origin, stats] of topSites) {
+    for (const { origin, count } of topSites) {
         const item = document.createElement("div");
         item.className = "detection";
 
         const name = document.createElement("strong");
         name.textContent = getHostname(origin);
 
-        const count = document.createElement("p");
-        count.textContent = `${stats.count} recorded API accesses`;
+        const total = document.createElement("p");
+        total.textContent = `${count} recorded API accesses`;
 
         const button = document.createElement("button");
         button.textContent = "View details";
@@ -220,7 +256,7 @@ function displayTopSites() {
             renderSelectedSite();
         });
 
-        item.append(name, count, button);
+        item.append(name, total, button);
         container.appendChild(item);
     }
 }
@@ -229,11 +265,7 @@ function populateSiteFilter() {
     const filter = document.getElementById("site-filter");
     const previousValue = filter.value || "all";
 
-    const origins = [...new Set(
-        allDetections
-            .map((d) => getOrigin(d.url))
-            .filter(Boolean)
-    )].sort();
+    const origins = Object.keys(stats).sort();
 
     filter.replaceChildren();
 
@@ -249,35 +281,30 @@ function populateSiteFilter() {
         filter.appendChild(option);
     }
 
-    filter.value = origins.includes(previousValue)
-        ? previousValue
-        : "all";
+    filter.value = origins.includes(previousValue) ? previousValue : "all";
 }
 
 function renderSelectedSite() {
     const selected = document.getElementById("site-filter").value;
 
-    const detections = selected === "all"
-        ? allDetections
-        : allDetections.filter(
-            (d) => getOrigin(d.url) === selected
-        );
+    const entries = collectEntries(selected);
+    const recentItems = selected === "all"
+        ? recent
+        : recent.filter((item) => item.origin === selected);
 
-    displaySummary(detections);
-    displayDetections(detections);
+    displaySummary(entries);
+    displayDetections(recentItems);
 }
 
-function displaySummary(detections) {
+function displaySummary(entries) {
     const summary = document.getElementById("summary");
     summary.replaceChildren();
 
-    const uniqueAttributes = new Set(
-        detections.map((d) => d.api || "Unknown activity")
-    );
+    const total = entries.reduce((sum, e) => sum + e.count, 0);
+    const uniqueAttributes = new Set(entries.map((e) => e.api));
 
     const heading = document.createElement("p");
-    heading.textContent =
-        `Total API accesses: ${detections.length}`;
+    heading.textContent = `Total API accesses: ${total}`;
 
     const unique = document.createElement("p");
     unique.textContent =
@@ -285,7 +312,7 @@ function displaySummary(detections) {
 
     summary.append(heading, unique);
 
-    if (!detections.length) {
+    if (!entries.length) {
         const empty = document.createElement("p");
         empty.textContent = "No recorded activity for this selection.";
         summary.appendChild(empty);
@@ -294,62 +321,59 @@ function displaySummary(detections) {
 
     const counts = new Map();
 
-    for (const detection of detections) {
-        const category = detection.category || "Unknown";
-        counts.set(category, (counts.get(category) || 0) + 1);
+    for (const { category, count } of entries) {
+        const name = category || "Unknown";
+        counts.set(name, (counts.get(name) || 0) + count);
     }
 
     for (const [category, count] of [...counts.entries()]
         .sort((a, b) => b[1] - a[1])) {
         const line = document.createElement("p");
         const label = document.createElement("strong");
-        label.textContent = categoryLabels[category] || category;
+        label.textContent = lookup(categoryLabels, category) || category;
         line.append(label, document.createTextNode(`: ${count}`));
         summary.appendChild(line);
     }
 }
 
-function displayDetections(detections) {
+function displayDetections(items) {
     const container = document.getElementById("detections");
     container.replaceChildren();
 
-    if (!detections.length) {
+    if (!items.length) {
         container.textContent = "No recorded activity.";
         return;
     }
 
-    for (const detection of [...detections].reverse().slice(0, 20)) {
-        const item = document.createElement("div");
-        item.className = "detection";
+    for (const item of [...items].reverse().slice(0, 20)) {
+        const row = document.createElement("div");
+        row.className = "detection";
 
         const category = document.createElement("strong");
         category.textContent =
-            categoryLabels[detection.category] ||
-            detection.category ||
+            lookup(categoryLabels, item.category) ||
+            item.category ||
             "Other Activity";
 
         const api = document.createElement("div");
-        api.textContent = friendlyName(detection.api);
+        api.textContent = item.count > 1
+            ? `${friendlyName(item.api)} \u00d7${item.count}`
+            : friendlyName(item.api);
 
-        const url = document.createElement("small");
-        url.textContent = getHostname(getOrigin(detection.url));
+        const site = document.createElement("small");
+        site.textContent = getHostname(item.origin);
 
         const timestamp = document.createElement("small");
-        timestamp.textContent = detection.timestamp
-            ? new Date(detection.timestamp).toLocaleString()
+        timestamp.textContent = item.timestamp
+            ? new Date(item.timestamp).toLocaleString()
             : "Unknown time";
 
-        item.append(category, api, url, timestamp);
-        container.appendChild(item);
+        row.append(category, api, site, timestamp);
+        container.appendChild(row);
     }
 }
 
-document.getElementById("site-filter").addEventListener(
-    "change",
-    renderSelectedSite
-);
-
-loadDetections().catch((error) => {
+function showLoadError(error) {
     console.error("ShadowShield: Failed to load detections.", error);
     document.getElementById("current-site").textContent =
         "Could not load website information.";
@@ -357,4 +381,20 @@ loadDetections().catch((error) => {
         "Could not load website activity.";
     document.getElementById("summary").textContent =
         "Could not load activity summary.";
+}
+
+document.getElementById("site-filter").addEventListener(
+    "change",
+    renderSelectedSite
+);
+
+document.getElementById("clear-data").addEventListener("click", async () => {
+    try {
+        await extensionAPI.runtime.sendMessage({ type: "clear-data" });
+        await loadDetections();
+    } catch (error) {
+        showLoadError(error);
+    }
 });
+
+loadDetections().catch(showLoadError);

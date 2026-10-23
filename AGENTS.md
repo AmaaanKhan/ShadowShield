@@ -57,8 +57,8 @@
 
 - **Never store or transmit full URLs.** Record the `origin` only
   (`location.origin`, not `location.href`).  
-  _(Known issue in Phase 0.2: `content/bridge.js` still sends the full URL;
-  fix is planned for Phase 1.)_
+  The background derives the origin from `sender.url`; the page and the
+  bridge never supply identity.
 - **The extension makes zero outbound network requests.** Do not add `fetch`,
   `XMLHttpRequest`, or WebSocket calls. All data stays in `browser.storage.local`.
 
@@ -92,6 +92,19 @@ can be considered "done":
 - **All spoof values live in `src/shared/profiles.js`.** Do not duplicate
   profile constants in individual modules or the popup. Import from shared/.
 
+## 8. Keep `docs/STATUS.md` Current
+
+- **At the end of every task, update `docs/STATUS.md`** (completed work, key
+  decisions, open issues, next step). It is how the next person - or the next
+  agent session - picks the project up without the chat history.
+
+## 9. Document What You Build
+
+- **A new or changed module needs its page** in `docs/modules/<name>.md`, a line
+  in `CHANGELOG.md` (under Unreleased), and a COVERAGE row.
+- **A big or hard-to-reverse choice needs a note** in `docs/decisions/`.
+- See `CONTRIBUTING.md` for the full map of where things are written down.
+
 ---
 
-_Last updated: Phase 0.2 — core + modules refactor_
+_Last updated: Phase 0.3-lite — safe pipeline, origin-only storage_

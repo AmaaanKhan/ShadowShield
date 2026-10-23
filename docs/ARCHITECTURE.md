@@ -1,6 +1,6 @@
 # ShadowShield — Architecture
 
-> This document describes the project structure as of **Phase 0.2**. It is
+> This document describes the project structure as of **Phase 0.3-lite**. It is
 > updated at the end of each phase.
 
 ---
@@ -26,14 +26,17 @@
 │  ┌─────────────────▼──────────────────────────────────────────┐  │
 │  │  Isolated world  —  dist/content.js                        │  │
 │  │  src/content/bridge.js                                      │  │
+│  │  validate → count per (api, category) → 1 batch / second   │  │
 │  └─────────────────┬──────────────────────────────────────────┘  │
 └────────────────────┼─────────────────────────────────────────────┘
-                     │ browser.runtime.sendMessage
-          ┌──────────▼──────────────┐
-          │  Background (SW)         │
-          │  src/background/index.js │
-          │  Writes → storage.local  │
-          └──────────┬──────────────┘
+                     │ runtime.sendMessage  { type: "fingerprint-batch" }
+          ┌──────────▼──────────────────────┐
+          │  Background (event page)         │
+          │  src/background/index.js         │
+          │  src/background/event-store.js   │
+          │  origin from sender.url, caps,   │
+          │  serialized writes → storage     │
+          └──────────┬──────────────────────┘
                      │ storage.local.get
           ┌──────────▼──────────────┐
           │  Popup UI                │
@@ -49,8 +52,9 @@
 
 | Path | Purpose |
 |---|---|
-| `src/background/index.js` | MV3 service worker; receives detections, writes `storage.local` |
-| `src/content/bridge.js` | Isolated-world bridge; forwards page→extension messages |
+| `src/background/index.js` | Background event page; receives batches, enforces trust rules, writes `storage.local` |
+| `src/background/event-store.js` | Pure aggregation, limits and eviction logic (no browser APIs; unit-testable in Node) |
+| `src/content/bridge.js` | Isolated-world bridge; validates, rate-limits and batches page→extension events |
 | `src/inject/index.js` | MAIN-world bootstrap; builds `ctx`, iterates module registry |
 | `src/inject/core/hook.js` | `hookMethod` / `hookGetter` — central override registry |
 | `src/inject/core/report.js` | `reportDetection` — postMessage wrapper |
@@ -59,6 +63,7 @@
 | `src/inject/modules/index.js` | Ordered registry array |
 | `src/popup/popup.js` | Extension popup UI |
 | `src/shared/profiles.js` | **Single source of truth** for the active protection profile |
+| `src/shared/detection-schema.js` | Shape rules for detection events, used by both bridge and background |
 | `scripts/build.mjs` | esbuild bundler (`--dev` flag sets `__SHADOWSHIELD_DEBUG__=true`) |
 | `tests/pages/` | Manual test pages per feature |
 | `tests/unit/` | Automated unit tests (to be added Phase 1+) |
@@ -118,37 +123,60 @@ reversible. Phase 1 will add stealth (preserve native `toString`).
 
 ## Known Issues — Planned Fixes
 
-> These are preserved quirks from Phase 0.1, listed here so they are
-> discoverable. Phase 1 addresses them in priority order.
-
-| Issue | Impact | Plan |
+| Issue | Impact | Status |
 |---|---|---|
-| **Forgeable postMessage channel** | A page can spoof `source: "ShadowShield"` messages | Add structured-clone message with stricter origin filtering |
-| **Full URLs stored in storage** | Privacy leak — `detection.url` stores the full `location.href` | `content/bridge.js` must record `location.origin` only (AGENTS.md rule 4) |
-| **Non-stealth hooks** | Wrapped functions fail `Function.prototype.toString` native checks | Phase 1: preserve native toString via `Proxy` or `Object.defineProperty` on the wrapper |
-| **Per-instance WebGL patching** | WebGL hooks installed on each context object; misses contexts created before injection | Migrate to `WebGLRenderingContext.prototype` in Phase 1 |
-| **No `all_frames` / Worker coverage** | Fingerprinting in iframes and workers is undetected | Future phase |
-| **Inconsistent Date getters** | `toDateString`, `toTimeString`, `toUTCString` not intercepted | Phase 1 |
-| **No runtime config** | Profile is compile-time constant; can't toggle per-site | Phase 2 |
+| ~~Full URLs stored in storage~~ | Privacy leak | **Fixed in 0.3-lite.** Only origins are stored; the origin comes from `sender.url`, never from the page. A legacy `detections` key is deleted on startup. |
+| ~~Unbounded storage growth~~ | Slow writes, quota | **Fixed in 0.3-lite.** Aggregated counts with caps (see Storage Schema). |
+| **Forged events are still countable** | A page can post a well-formed `source: "ShadowShield"` message and have it counted | **Mitigated, not eliminated.** Events are validated, rate-limited (1 batch/s, 100 keys) and bounded, so forgery cannot inject URLs, grow storage past its caps or spam the popup. A private MessageChannel handshake would close it fully; deferred. |
+| **Non-stealth hooks** | Wrapped functions fail `Function.prototype.toString` native checks | Phase 1: make `core/hook.js` stealthy |
+| **Per-instance WebGL patching** | Hooks installed on each context object; no WebGL2/OffscreenCanvas prototype coverage | Phase 1: patch the prototypes |
+| **No `all_frames` / Worker coverage** | Fingerprinting in iframes and workers is undetected | Phase 1 |
+| **Inconsistent Date getters** | `toDateString`, `toTimeString`, `toUTCString` and local getters (`getHours` …) not intercepted | Phase 1 |
+| **`DateTimeFormat` locale/hour-cycle mismatch** | ru-RU locale can still print a 12-hour clock | Phase 1 |
+| **`deviceMemory` on a Firefox UA** | Firefox has no `navigator.deviceMemory`; defining it is itself an anomaly | Phase 1 |
+| **No runtime config** | Profile is a compile-time constant; no per-site toggles | Phase 2 |
 
 ---
 
 ## Storage Schema
 
-Detections are stored in `browser.storage.local` under the key `detections`:
+Two keys in `browser.storage.local`. Only **origins** are stored, never paths or
+query strings.
 
 ```json
 {
-  "detections": [
-    {
-      "api":       "Canvas.toDataURL",
-      "category":  "Canvas",
-      "timestamp": "2026-01-01T00:00:00.000Z",
-      "url":       "https://example.com/"   // ← known issue: should be origin only
+  "stats": {
+    "https://example.com": {
+      "lastSeen": 1767225600000,
+      "apis": {
+        "Canvas.toDataURL": {
+          "category": "Canvas",
+          "count": 12,
+          "firstSeen": 1767225000000,
+          "lastSeen": 1767225600000
+        }
+      }
     }
+  },
+  "recent": [
+    { "origin": "https://example.com", "api": "Canvas.toDataURL",
+      "category": "Canvas", "count": 3, "timestamp": 1767225600000 }
   ]
 }
 ```
+
+Limits (`LIMITS` in `src/background/event-store.js`):
+
+| Limit | Value |
+|---|---|
+| Origins kept (least recently seen evicted first) | 200 |
+| Distinct APIs per origin | 64 |
+| `recent` entries | 50 |
+| Entries accepted per batch | 100 |
+| Count increment accepted per entry | 100000 |
+
+The popup's **Clear data** button sends `{ type: "clear-data" }` to the
+background, which only accepts it from extension pages (no `sender.tab`).
 
 ---
 
@@ -156,5 +184,10 @@ Detections are stored in `browser.storage.local` under the key `detections`:
 
 - The extension makes **no outbound network requests** (AGENTS.md rule 4).
 - All data is stored locally in `browser.storage.local`.
-- The postMessage channel is not authenticated (see Known Issues above).
+- The background accepts messages only from this extension (`sender.id`), and
+  detection batches only from a tab. The site identity is taken from
+  `sender.url`, which the browser sets; nothing the page sends is trusted for
+  identity.
+- The postMessage channel from page to bridge is not authenticated (see Known
+  Issues); the bridge validates and rate-limits everything it receives.
 - Hooks run in the page's JS context and are visible to advanced page scripts.

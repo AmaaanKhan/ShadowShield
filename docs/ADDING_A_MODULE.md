@@ -105,7 +105,14 @@ on a real fingerprinting site. See the legend in `COVERAGE.md`.
 
 ---
 
-## Step 5 — Verify
+## Step 5 — Write the module page and changelog line
+
+1. Copy `docs/modules/_TEMPLATE.md` to `docs/modules/<your-module>.md` and fill it
+   in (what it does, what it does not do, how to test it). Add it to the table in
+   `docs/modules/README.md`.
+2. Add one line under **Unreleased** in `CHANGELOG.md`.
+
+## Step 6 — Verify
 
 1. `npm run build` — must pass with no new errors or warnings.
 2. `npm run lint` — must pass.
@@ -116,7 +123,7 @@ on a real fingerprinting site. See the legend in `COVERAGE.md`.
 
 ---
 
-## Step 6 — (Optional) Write a unit test
+## Step 7 — (Optional) Write a unit test
 
 If the hook logic can be tested outside a browser, add a test at
 `tests/unit/<your-module>.test.js`.
@@ -129,6 +136,8 @@ If the hook logic can be tested outside a browser, add a test at
 - [ ] Import + registry line added to `src/inject/modules/index.js`
 - [ ] `tests/pages/<your-module>/` test page added
 - [ ] `docs/COVERAGE.md` row added (status ≤ 🔍 Detected until verified)
+- [ ] `docs/modules/<your-module>.md` written and linked from `docs/modules/README.md`
+- [ ] `CHANGELOG.md` line added
 - [ ] `npm run build` passes
 - [ ] `npm run lint` passes
 - [ ] Manual test in Firefox confirms detection recorded in popup
