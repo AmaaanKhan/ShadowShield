@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "ShadowShield",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Detects browser fingerprinting activity.",
     "browser_specific_settings": {
         "gecko": {
@@ -11,7 +11,8 @@
     },
     "permissions": [
         "tabs",
-        "storage"
+        "storage",
+        "privacy"
     ],
     "background": {
         "scripts": [
@@ -26,12 +27,16 @@
             "matches": ["<all_urls>"],
             "js": ["injection.js"],
             "run_at": "document_start",
-            "world": "MAIN"
+            "world": "MAIN",
+            "all_frames": true,
+            "match_about_blank": true
         },
         {
             "matches": ["<all_urls>"],
             "js": ["content.js"],
-            "run_at": "document_start"
+            "run_at": "document_start",
+            "all_frames": true,
+            "match_about_blank": true
         }
     ]
 }

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ShadowShield Blank Frame Test</title>
+</head>
+<body>
+    <h1>ShadowShield Blank Frame Test</h1>
+    <pre id="result">Running...</pre>
+    <script>
+        const frame = document.createElement("iframe");
+        frame.src = "about:blank";
+        document.body.appendChild(frame);
+
+        const result = document.getElementById("result");
+        const mainValues = {
+            userAgent: navigator.userAgent,
+            hardwareConcurrency: navigator.hardwareConcurrency
+        };
+        const frameValues = {
+            userAgent: frame.contentWindow.navigator.userAgent,
+            hardwareConcurrency: frame.contentWindow.navigator.hardwareConcurrency
+        };
+        const matches =
+            mainValues.userAgent === frameValues.userAgent &&
+            mainValues.hardwareConcurrency === frameValues.hardwareConcurrency;
+
+        result.textContent = JSON.stringify(
+            { mainValues, frameValues },
+            null,
+            2
+        ) + `\n${matches ? "MATCH" : "MISMATCH (frame bypass)"}`;
+    </script>
+</body>
+</html>

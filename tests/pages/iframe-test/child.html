@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Embedded Fingerprint Test</title>
+</head>
+<body>
+    <h1>Embedded Fingerprint Test</h1>
+    <script>
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        context.fillText("iframe", 0, 10);
+
+        console.log("Iframe user agent:", navigator.userAgent);
+        console.log("Iframe CPU cores:", navigator.hardwareConcurrency);
+        console.log("Iframe screen width:", screen.width);
+        console.log("Iframe canvas:", canvas.toDataURL());
+        console.log(
+            "Iframe timezone:",
+            new Intl.DateTimeFormat().resolvedOptions().timeZone
+        );
+    </script>
+</body>
+</html>

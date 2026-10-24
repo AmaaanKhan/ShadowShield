@@ -32,7 +32,7 @@ Stop restructuring. The base is complete: commit it, then pick the first feature
 
 ## Quick-wins batch 1 progress
 - [x] Stage 1 — dependency-free unit tests and CI test step
-- [ ] Stage 2 — iframe coverage and top-site attribution
-- [ ] Stage 3 — WebRTC IP protection setting
+- [x] Stage 2 — iframe coverage and top-site attribution
+- [x] Stage 3 — WebRTC IP protection setting
 - [ ] Stage 4 — popup redesign
 - [ ] Stage 5 — verify script and documentation
