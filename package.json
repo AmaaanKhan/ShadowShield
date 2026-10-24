@@ -10,7 +10,9 @@
     "lint":    "eslint src/ && web-ext lint --source-dir=dist/ --warnings-as-errors",
     "lint:src": "eslint src/",
     "format":  "prettier --write \"src/**/*.{js,json,html,css}\"",
-    "test":    "echo \"No unit tests yet – see tests/pages/ for manual test pages\" && exit 0",
+    "test":    "node --test tests/unit/*.test.mjs",
+    "test:pages": "node scripts/serve-test-pages.mjs",
+    "verify": "node scripts/verify.mjs",
     "package": "npm run build && web-ext build --source-dir=dist/ --artifacts-dir=artifacts/"
   },
   "devDependencies": {

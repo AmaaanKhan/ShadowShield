@@ -29,3 +29,10 @@ patching, iframes/workers, Date/locale coherence, `deviceMemory` on Firefox).
 Stop restructuring. The base is complete: commit it, then pick the first feature by demo value and build it as a module
 (see `docs/ADDING_A_MODULE.md`). Likely first: **Phase 1 stealth hooks** in
 `core/hook.js`, because every later spoof depends on hooks not being detectable.
+
+## Quick-wins batch 1 progress
+- [x] Stage 1 — dependency-free unit tests and CI test step
+- [ ] Stage 2 — iframe coverage and top-site attribution
+- [ ] Stage 3 — WebRTC IP protection setting
+- [ ] Stage 4 — popup redesign
+- [ ] Stage 5 — verify script and documentation

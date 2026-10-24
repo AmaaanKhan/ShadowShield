@@ -22,6 +22,7 @@ import { isValidDetection } from "../shared/detection-schema.js";
 export const LIMITS = Object.freeze({
     maxOrigins: 200,
     maxApisPerOrigin: 64,
+    maxFramesPerOrigin: 20,
     maxRecent: 50,
     maxBatchEntries: 100,
     maxCountPerEntry: 100000
@@ -65,7 +66,13 @@ export function normalizeState(raw) {
                 ) {
                     state.stats[origin] = {
                         lastSeen: Number(site.lastSeen) || 0,
-                        apis: site.apis
+                        apis: site.apis,
+                        frames:
+                            site.frames &&
+                            typeof site.frames === "object" &&
+                            !Array.isArray(site.frames)
+                                ? site.frames
+                                : {}
                     };
                 }
             }
@@ -112,7 +119,14 @@ export function sanitizeBatch(entries, limits = LIMITS) {
  * Merge a sanitized batch into the state (mutates and returns `state`).
  * Enforces every cap: APIs per origin, number of origins, recent length.
  */
-export function applyBatch(state, origin, entries, now, limits = LIMITS) {
+export function applyBatch(
+    state,
+    origin,
+    entries,
+    now,
+    limits = LIMITS,
+    actorOrigin = null
+) {
     if (typeof origin !== "string" || !/^https?:\/\/[^/?#\s]+$/.test(origin)) {
         return state;
     }
@@ -123,6 +137,7 @@ export function applyBatch(state, origin, entries, now, limits = LIMITS) {
         : state.stats[origin];
 
     let touched = false;
+    let appliedCount = 0;
 
     for (const { api, category, count } of entries) {
         let entry = hasOwn(site.apis, api) ? site.apis[api] : null;
@@ -138,6 +153,7 @@ export function applyBatch(state, origin, entries, now, limits = LIMITS) {
         entry.count = Math.min(entry.count + count, Number.MAX_SAFE_INTEGER);
         entry.lastSeen = now;
         touched = true;
+        appliedCount += count;
 
         state.recent.push({
             origin,
@@ -149,6 +165,30 @@ export function applyBatch(state, origin, entries, now, limits = LIMITS) {
     }
 
     if (!touched) return state;
+
+    if (
+        typeof actorOrigin === "string" &&
+        /^https?:\/\/[^/?#\s]+$/.test(actorOrigin) &&
+        actorOrigin !== origin
+    ) {
+        if (!site.frames) site.frames = {};
+        let frame = hasOwn(site.frames, actorOrigin)
+            ? site.frames[actorOrigin]
+            : null;
+
+        if (!frame && Object.keys(site.frames).length < limits.maxFramesPerOrigin) {
+            frame = { count: 0, firstSeen: now, lastSeen: now };
+            site.frames[actorOrigin] = frame;
+        }
+
+        if (frame) {
+            frame.count = Math.min(
+                frame.count + appliedCount,
+                Number.MAX_SAFE_INTEGER
+            );
+            frame.lastSeen = now;
+        }
+    }
 
     site.lastSeen = now;
     state.stats[origin] = site;

@@ -27,6 +27,9 @@ jobs:
       - name: Lint (ESLint + web-ext lint)
         run: npm run lint
 
+      - name: Unit tests
+        run: npm test
+
       - name: Build extension
         run: npm run build
 
