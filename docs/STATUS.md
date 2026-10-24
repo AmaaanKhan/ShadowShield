@@ -1,6 +1,6 @@
 # ShadowShield — Status
 
-_Last updated: Phase 0.3-lite._
+_Last updated: Quick-wins batch 1._
 
 ## Completed
 - **0.1** Tooling: esbuild build, ESLint, Prettier, CI, `AGENTS.md`, docs skeleton.
@@ -14,6 +14,8 @@ _Last updated: Phase 0.3-lite._
 - **Docs system** Per-module pages (`docs/modules/`), decision notes
   (`docs/decisions/`), `CHANGELOG.md`, `CONTRIBUTING.md` and a pull request
   checklist, so collaborators know where to work and what to write down.
+- **Quick-wins batch 1** Dependency-free tests, iframe attribution, WebRTC
+  protection, redesigned popup, test-page server, verification script and docs.
 
 ## Key decisions
 - Firefox is the primary target; Chromium compatibility only where cheap.
@@ -23,16 +25,18 @@ _Last updated: Phase 0.3-lite._
 
 ## Open issues
 See "Known Issues" in `docs/ARCHITECTURE.md` (stealth hooks, WebGL prototype
-patching, iframes/workers, Date/locale coherence, `deviceMemory` on Firefox).
+patching, workers, Date/locale coherence, `deviceMemory` on Firefox, and
+same-origin about:blank coherence).
 
 ## Next step
-Stop restructuring. The base is complete: commit it, then pick the first feature by demo value and build it as a module
-(see `docs/ADDING_A_MODULE.md`). Likely first: **Phase 1 stealth hooks** in
-`core/hook.js`, because every later spoof depends on hooks not being detectable.
+Quick-wins batch 1 is complete. The next recommended work is **Phase 1 stealth
+hooks** in `core/hook.js`, because every later spoof depends on hooks not being
+detectable. Workers, complete timezone coherence, and authenticated
+page-to-bridge reporting remain open.
 
 ## Quick-wins batch 1 progress
 - [x] Stage 1 — dependency-free unit tests and CI test step
 - [x] Stage 2 — iframe coverage and top-site attribution
 - [x] Stage 3 — WebRTC IP protection setting
 - [x] Stage 4 — popup redesign
-- [ ] Stage 5 — verify script and documentation
+- [x] Stage 5 — verify script and documentation

@@ -14,7 +14,10 @@ const contentTypes = {
 function createServer(port) {
     const server = http.createServer((request, response) => {
         const requestPath = new URL(request.url, `http://127.0.0.1:${port}`).pathname;
-        const filePath = path.resolve(root, `.${requestPath}`);
+        const requestedPath = requestPath.endsWith("/")
+            ? `${requestPath}index.html`
+            : requestPath;
+        const filePath = path.resolve(root, `.${requestedPath}`);
 
         if (!filePath.startsWith(`${root}${path.sep}`)) {
             response.writeHead(403);

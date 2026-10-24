@@ -34,8 +34,8 @@
           │  Background (event page)         │
           │  src/background/index.js         │
           │  src/background/event-store.js   │
-          │  origin from sender.url, caps,   │
-          │  serialized writes → storage     │
+          │  top-site origin + frame actor,  │
+          │  coalesced writes → storage      │
           └──────────┬──────────────────────┘
                      │ storage.local.get
           ┌──────────▼──────────────┐
@@ -64,6 +64,7 @@
 | `src/popup/popup.js` | Extension popup UI |
 | `src/shared/profiles.js` | **Single source of truth** for the active protection profile |
 | `src/shared/detection-schema.js` | Shape rules for detection events, used by both bridge and background |
+| `src/shared/webrtc.js` | Pure WebRTC setting defaults and control-status helpers |
 | `scripts/build.mjs` | esbuild bundler (`--dev` flag sets `__SHADOWSHIELD_DEBUG__=true`) |
 | `tests/pages/` | Manual test pages per feature |
 | `tests/unit/` | Automated unit tests (to be added Phase 1+) |
@@ -130,7 +131,8 @@ reversible. Phase 1 will add stealth (preserve native `toString`).
 | **Forged events are still countable** | A page can post a well-formed `source: "ShadowShield"` message and have it counted | **Mitigated, not eliminated.** Events are validated, rate-limited (1 batch/s, 100 keys) and bounded, so forgery cannot inject URLs, grow storage past its caps or spam the popup. A private MessageChannel handshake would close it fully; deferred. |
 | **Non-stealth hooks** | Wrapped functions fail `Function.prototype.toString` native checks | Phase 1: make `core/hook.js` stealthy |
 | **Per-instance WebGL patching** | Hooks installed on each context object; no WebGL2/OffscreenCanvas prototype coverage | Phase 1: patch the prototypes |
-| **No `all_frames` / Worker coverage** | Fingerprinting in iframes and workers is undetected | Phase 1 |
+| **No `all_frames` / Worker coverage** | Iframe coverage and top-site attribution are fixed; Workers remain uncovered | Partly fixed in quick-wins batch 1 |
+| **Same-origin about:blank frame coherence** | An about:blank frame may expose real values | Needs manual confirmation using `tests/pages/iframe-test/blank-frame.html` |
 | **Inconsistent Date getters** | `toDateString`, `toTimeString`, `toUTCString` and local getters (`getHours` …) not intercepted | Phase 1 |
 | **`DateTimeFormat` locale/hour-cycle mismatch** | ru-RU locale can still print a 12-hour clock | Phase 1 |
 | **`deviceMemory` on a Firefox UA** | Firefox has no `navigator.deviceMemory`; defining it is itself an anomaly | Phase 1 |
@@ -140,8 +142,9 @@ reversible. Phase 1 will add stealth (preserve native `toString`).
 
 ## Storage Schema
 
-Two keys in `browser.storage.local`. Only **origins** are stored, never paths or
-query strings.
+The activity data uses two keys in `browser.storage.local`. Only **origins** are
+stored, never paths or query strings. The separate settings and status keys are
+described below.
 
 ```json
 {
@@ -152,6 +155,13 @@ query strings.
         "Canvas.toDataURL": {
           "category": "Canvas",
           "count": 12,
+          "firstSeen": 1767225000000,
+          "lastSeen": 1767225600000
+        }
+      },
+      "frames": {
+        "https://embedded.example": {
+          "count": 4,
           "firstSeen": 1767225000000,
           "lastSeen": 1767225600000
         }
@@ -171,12 +181,28 @@ Limits (`LIMITS` in `src/background/event-store.js`):
 |---|---|
 | Origins kept (least recently seen evicted first) | 200 |
 | Distinct APIs per origin | 64 |
+| Embedded origins per origin | 20 |
 | `recent` entries | 50 |
 | Entries accepted per batch | 100 |
 | Count increment accepted per entry | 100000 |
 
 The popup's **Clear data** button sends `{ type: "clear-data" }` to the
 background, which only accepts it from extension pages (no `sender.tab`).
+
+The background coalesces iframe batches for 500 ms and saves the state once per
+flush. The top-level origin comes from the tab URL; a different HTTP(S) frame
+origin is stored under that site's `frames` map.
+
+Additional local keys are maintained separately:
+
+```json
+{
+  "settings": { "webrtcProtection": true },
+  "status": { "webrtc": "active" }
+}
+```
+
+The `settings` and `status` keys are not removed by **Clear data**.
 
 ---
 

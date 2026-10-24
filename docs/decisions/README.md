@@ -18,3 +18,4 @@ Rules of thumb:
 | 0003 | [Validate and rate-limit instead of a private channel](0003-validate-instead-of-handshake.md) | Accepted |
 | 0004 | [Firefox first](0004-firefox-first.md) | Accepted |
 | 0005 | [Per-site consistent randomization](0005-per-site-randomization.md) | Proposed |
+| 0006 | [Attribute frame reads to the top-level site](0006-attribute-to-top-site.md) | Accepted |

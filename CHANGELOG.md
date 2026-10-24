@@ -8,6 +8,8 @@ in every pull request that changes what the extension does or how it is built.
 
 ### Added
 - "Clear data" button in the popup.
+- Iframe coverage with embedded-source attribution, WebRTC protection settings,
+  dependency-free unit tests, a test-page server and a verify script.
 - Project docs: per-module pages (`docs/modules/`), decision notes
   (`docs/decisions/`), `STATUS.md`, `CONTRIBUTING.md`, pull request checklist.
 - Build tooling (esbuild), linting, formatting rules and a CI workflow.
@@ -19,6 +21,8 @@ in every pull request that changes what the extension does or how it is built.
   (it previously showed a different, hardcoded profile).
 - Detections are batched and rate-limited before reaching storage.
 - Storage now holds website names and counts only (see decision 0002).
+- The popup was redesigned, including separate website/date text and clearer
+  activity, settings and profile sections.
 
 ### Fixed
 - Full page URLs were being saved; they are no longer stored, and the old saved

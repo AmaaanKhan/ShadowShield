@@ -215,11 +215,19 @@ Use the same browser and test page for both runs. Results can vary with browser 
 
 From the repository root, run:
 
-    npx http-server tests/pages/fingerprint-test -p 8000
+    npm run test:pages
 
 Keep the terminal open and visit:
 
-http://127.0.0.1:8000
+http://127.0.0.1:8000/fingerprint-test/
+
+For iframe attribution, visit:
+
+http://127.0.0.1:8000/iframe-test/
+
+The embedded page is served from port 8001, making it a separate origin.
+The blank-frame evidence page is available at
+http://127.0.0.1:8000/iframe-test/blank-frame.html.
 
 ### Lint and build
 

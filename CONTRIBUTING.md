@@ -9,6 +9,8 @@ npm install
 npm run build       # then load dist/manifest.json in Firefox (about:debugging)
 npm run dev         # rebuilds on change, with debug logging
 npm run lint
+npm test
+npm run verify
 ```
 
 ## Which lane is your change in?
