@@ -34,5 +34,5 @@ Stop restructuring. The base is complete: commit it, then pick the first feature
 - [x] Stage 1 — dependency-free unit tests and CI test step
 - [x] Stage 2 — iframe coverage and top-site attribution
 - [x] Stage 3 — WebRTC IP protection setting
-- [ ] Stage 4 — popup redesign
+- [x] Stage 4 — popup redesign
 - [ ] Stage 5 — verify script and documentation
