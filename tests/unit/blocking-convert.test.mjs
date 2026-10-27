@@ -67,6 +67,28 @@ test("exception rules beat block rules", () => {
     assert.equal(evaluate(rules, req("https://tracker-one.test/allowed.js"))?.action, "allow");
 });
 
+test("$important rules handle exceptions correctly", () => {
+    const importantBlock = convertList([
+        "||tracker.test/path^$important",
+        "@@||tracker.test/path^"
+    ].join("\n")).rules;
+
+    assert.equal(
+        evaluate(importantBlock, req("https://tracker.test/path", "script"))?.action,
+        "block"
+    );
+
+    const importantException = convertList([
+        "||tracker.test/path^$important",
+        "@@||tracker.test/path^$important"
+    ].join("\n")).rules;
+
+    assert.equal(
+        evaluate(importantException, req("https://tracker.test/path", "script"))?.action,
+        "allow"
+    );
+});
+
 test("$document exceptions become allowAllRequests on main_frame", () => {
     const r = rules.find((x) => x.action.type === "allowAllRequests");
     assert.deepEqual(r.condition.resourceTypes, ["main_frame"]);
