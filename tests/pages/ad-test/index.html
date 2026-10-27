@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShadowShield ad blocking test</title>
+    <style>
+        body { font: 16px/1.5 system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; color: #13242b; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d8e0de; }
+        .blocked { color: #1b6b57; font-weight: 600; }
+        .loaded { color: #9b2c2c; font-weight: 600; }
+        .unknown { color: #5a6b72; }
+        code { font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>Ad blocking test</h1>
+    <p>Each row requests a file from a well-known ad network. With "Block ads everywhere" on,
+       every ad row should say <span class="blocked">blocked</span>. The control rows are normal
+       sites and should say <span class="loaded">loaded</span>.</p>
+    <p id="summary" class="unknown">Running…</p>
+    <table id="results">
+        <thead><tr><th>Request</th><th>Kind</th><th>Result</th></tr></thead>
+        <tbody></tbody>
+    </table>
+    <h2>What this does not cover</h2>
+    <p>Network blocking cannot remove ads that are served from the same place as the page's
+       own content (for example YouTube video ads), and it does not hide the empty space a
+       blocked ad leaves behind. Those need page-level tools that Manifest V3 limits.</p>
+    <p>Run <code>npm run test:pages</code> and open <code>http://127.0.0.1:8000/ad-test/</code>. This needs an internet connection.</p>
+    <script src="test.js"></script>
+</body>
+</html>

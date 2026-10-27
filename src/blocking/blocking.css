@@ -1,0 +1,11 @@
+/* Styles for the "Trackers and ads" card. Uses the colours from popup.css. */
+
+.blocking-summary {
+    margin: 4px 0 8px;
+    font-weight: bold;
+}
+
+.blocking-lists {
+    display: block;
+    margin-top: 8px;
+}
