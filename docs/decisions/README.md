@@ -19,3 +19,5 @@ Rules of thumb:
 | 0004 | [Firefox first](0004-firefox-first.md) | Accepted |
 | 0005 | [Per-site consistent randomization](0005-per-site-randomization.md) | Proposed |
 | 0006 | [Attribute frame reads to the top-level site](0006-attribute-to-top-site.md) | Accepted |
+| 0007 | [Network blocking with declarativeNetRequest](0007-network-blocking-with-declarative-net-request.md) | Accepted |
+| 0008 | [One manifest for Firefox and Chromium](0008-one-manifest-for-firefox-and-chromium.md) | Accepted |

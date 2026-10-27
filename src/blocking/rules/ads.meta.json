@@ -1,0 +1,14 @@
+{
+  "name": "EasyList",
+  "ruleset": "ads",
+  "listVersion": "202610211829",
+  "listLastModified": "21 Oct 2026 18:29 UTC",
+  "source": "https://easylist.to/easylist/easylist.txt",
+  "license": "GPL-3.0-or-later OR CC-BY-SA-3.0-or-later",
+  "attribution": "The EasyList authors (https://easylist.to/)",
+  "builtAt": "2026-10-26T10:19:18.238Z",
+  "rules": 3804,
+  "blockRules": 3294,
+  "allowRules": 510,
+  "blockedDomains": 52495
+}

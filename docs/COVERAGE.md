@@ -52,6 +52,22 @@
 
 ---
 
+## Network blocking
+
+Blocking does not hook page APIs, so it has its own table. See
+[`modules/blocking.md`](modules/blocking.md).
+
+| Feature | Source list | Status | Test Page | Unit Test |
+|---|---|---|---|---|
+| Tracker requests blocked | EasyPrivacy | ✅ Verified (test page, Firefox and Chromium) | `tests/pages/tracker-test/` | `tests/unit/blocking-convert.test.mjs` |
+| Ad network requests blocked | EasyList | ✅ Verified (test page, Firefox and Chromium) | `tests/pages/ad-test/` | `tests/unit/blocking-convert.test.mjs` |
+| Switch trackers / ads / site off | — | ⚠️ Partial (checked in Chromium; Firefox switches not yet confirmed) | `tests/pages/tracker-test/` | `tests/unit/blocking-settings.test.mjs` |
+| Blocked count in popup | — | ⚠️ Partial (Firefox needs `extensions.dnr.feedback`; Chrome count to be confirmed) | `tests/pages/ad-test/` | `tests/unit/blocking-settings.test.mjs` |
+| Hiding empty ad space | — | ❌ Missing | — | — |
+| YouTube-style video ads | — | ❌ Missing (not possible with rules) | — | — |
+
+---
+
 ## Notes
 
 - All spoof values in Phase 0.1 target a fictional **Linux x86\_64 / Firefox 158 /

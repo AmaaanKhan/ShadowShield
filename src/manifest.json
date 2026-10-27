@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "ShadowShield",
     "version": "0.2.0",
-    "description": "Detects browser fingerprinting activity.",
+    "description": "Blocks known trackers and ads, and detects browser fingerprinting activity.",
     "browser_specific_settings": {
         "gecko": {
             "id": "shadowshield@localhost",
@@ -12,11 +12,29 @@
     "permissions": [
         "tabs",
         "storage",
-        "privacy"
+        "privacy",
+        "declarativeNetRequest",
+        "activeTab"
     ],
     "background": {
         "scripts": [
+            "blocking.js",
             "background.js"
+        ],
+        "service_worker": "service-worker.js"
+    },
+    "declarative_net_request": {
+        "rule_resources": [
+            {
+                "id": "trackers",
+                "enabled": true,
+                "path": "rules/trackers.json"
+            },
+            {
+                "id": "ads",
+                "enabled": true,
+                "path": "rules/ads.json"
+            }
         ]
     },
     "action": {

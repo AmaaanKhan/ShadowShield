@@ -21,7 +21,7 @@ The project explores how websites collect browser and device characteristics and
 | Change how the popup looks | `src/popup/` | Normal HTML, CSS and JS |
 | Add or improve a protection | `src/inject/modules/` | One small JS file per protection |
 | Change what gets spoofed | `src/shared/profiles.js` | A plain object of values |
-| Block trackers (future) | `src/blocking/` | New folder, nothing else needs to change |
+| Block trackers and ads | `src/blocking/` | Settings, a popup card and generated rule lists; see [docs/modules/blocking.md](docs/modules/blocking.md) |
 
 Pick **one** of these per change. They rarely touch the same files, so several people can work at once.
 
@@ -48,6 +48,15 @@ First time only: `npm install`, then load `dist/manifest.json` as described unde
 Copy an existing module and change it; they all share the same shape. Then follow [docs/ADDING_A_MODULE.md](docs/ADDING_A_MODULE.md). Before you start, read [CONTRIBUTING.md](CONTRIBUTING.md) and the page in [docs/modules/](docs/modules/) for the area you are touching.
 
 ## Features
+
+### Tracker and ad blocking
+
+Blocks requests to known tracking and advertising servers using the EasyPrivacy
+and EasyList lists, turned into browser rules at build time. Switches for
+trackers, ads and the current site are in the popup. To refresh the lists:
+`npm run build:rules` (needs internet), or `npm run build:rules -- --only ads --input easylist.txt`
+to use a file you downloaded. Limits and how to test: [docs/modules/blocking.md](docs/modules/blocking.md).
+The lists are third-party; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ### Fingerprint Detection
 
@@ -182,6 +191,13 @@ No backend server or database is required.
 
 Temporary add-ons generally need to be loaded again after Firefox restarts.
 
+### Chrome (also works, Chrome 121 or newer)
+
+After step 3 above, open `chrome://extensions`, turn on **Developer mode**, click
+**Load unpacked** and choose the `dist` folder. Ignore any warning about
+Firefox-only settings. Firefox is still the main target; see
+[docs/decisions/0008](docs/decisions/0008-one-manifest-for-firefox-and-chromium.md).
+
 ### Development mode (watch + auto-reload)
 
     npm run dev
@@ -263,7 +279,7 @@ Avoid reporting a property as successfully spoofed until its behavior has been i
 - User-Agent Client Hints and other browser-specific signals may remain inconsistent with the configured profile.
 - Timezone normalization is partial. Local date getters and browser-internal behavior are not comprehensively virtualized.
 - Some properties are non-configurable, unavailable, or implemented differently across browsers. The current implementation may not be able to override them.
-- Firefox is the primary development target. Chromium compatibility has not been comprehensively verified.
+- Firefox is the primary development target. `dist/` also loads in Chrome 121+, but the page protections have not been comprehensively verified there.
 - Recorded activity depends on which instrumented APIs websites access and which events the extension successfully receives.
 - This project is an educational prototype, not a replacement for browser-native privacy protections.
 
