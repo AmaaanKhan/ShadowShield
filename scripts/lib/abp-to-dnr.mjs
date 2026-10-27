@@ -250,7 +250,7 @@ export function convertList(text, options = {}) {
       if (resourceTypes) { countSkip("document-combo"); continue; }
       action = "allowAllRequests";
       resourceTypes = ["main_frame"];
-    } else if (!exception && opts?.important) {
+    } else if (opts?.important) {
       priority = IMPORTANT_PRIORITY;
     }
 
