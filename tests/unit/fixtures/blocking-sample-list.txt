@@ -1,0 +1,21 @@
+[Adblock Plus 1.1]
+! Title: EasyPrivacy
+! Version: 1
+! This is a tiny list used by the tests.
+||tracker-one.test^
+||tracker-two.test^$third-party
+||sub.tracker-two.test^$third-party
+||tracker-three.test^$third-party
+||analytics.test/collect.js$script,third-party
+||pixel.test/hit$image,domain=news.test|~safe.news.test
+/beacon.gif?$image
+&event=pageview&
+@@||tracker-one.test/allowed.js$script
+@@||trusted.test^$document
+##.cosmetic-ad
+example.com#@#.ad
+/regex[0-9]+/$script
+||redirect.test/x.js$redirect=noopjs
+||gone.test^
+||gone.test^$badfilter
+||ünicode.test^

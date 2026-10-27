@@ -54,6 +54,17 @@ function copyStatic() {
         );
     }
 
+    copyFile(
+        path.join(SRC, "blocking", "blocking.css"),
+        path.join(DIST, "popup", "blocking.css")
+    );
+    for (const file of ["trackers.json", "ads.json"]) {
+        copyFile(
+            path.join(SRC, "blocking", "rules", file),
+            path.join(DIST, "rules", file)
+        );
+    }
+
     console.log("[build] Static files copied.");
 }
 
@@ -94,6 +105,16 @@ const entries = [
         ...sharedOptions,
         entryPoints: [path.join(SRC, "popup", "popup.js")],
         outfile: path.join(DIST, "popup", "popup.js")
+    },
+    {
+        ...sharedOptions,
+        entryPoints: [path.join(SRC, "blocking", "background.js")],
+        outfile: path.join(DIST, "blocking.js")
+    },
+    {
+        ...sharedOptions,
+        entryPoints: [path.join(SRC, "blocking", "popup.js")],
+        outfile: path.join(DIST, "popup", "blocking.js")
     }
 ];
 
@@ -116,7 +137,8 @@ async function main() {
         const staticSources = [
             path.join(SRC, "manifest.json"),
             path.join(SRC, "popup", "popup.html"),
-            path.join(SRC, "popup", "popup.css")
+            path.join(SRC, "popup", "popup.css"),
+            path.join(SRC, "blocking", "blocking.css")
         ];
         for (const file of staticSources) {
             fs.watch(file, () => {

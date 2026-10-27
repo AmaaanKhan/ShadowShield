@@ -62,6 +62,11 @@
 | `src/inject/modules/*.js` | One module per API group (see Module Contract below) |
 | `src/inject/modules/index.js` | Ordered registry array |
 | `src/popup/popup.js` | Extension popup UI |
+| `src/blocking/background.js` | Tracker and ad blocking: applies the user's switches to the browser's rule lists |
+| `src/blocking/settings.js` | Pure settings and rule helpers (unit-testable in Node) |
+| `src/blocking/popup.js` | The "Trackers and ads" card in the popup (built to `dist/popup/blocking.js`) |
+| `src/blocking/rules/` | Generated rule lists (`trackers.json`, `ads.json`) and their `*.meta.json` |
+| `scripts/build-rules.mjs` | Converts EasyPrivacy / EasyList into those rule lists (`npm run build:rules`) |
 | `src/shared/profiles.js` | **Single source of truth** for the active protection profile |
 | `src/shared/detection-schema.js` | Shape rules for detection events, used by both bridge and background |
 | `src/shared/webrtc.js` | Pure WebRTC setting defaults and control-status helpers |
@@ -204,11 +209,21 @@ Additional local keys are maintained separately:
 
 The `settings` and `status` keys are not removed by **Clear data**.
 
+Tracker and ad blocking keeps its own key, also not removed by **Clear data**:
+
+```json
+{
+  "blocking": { "trackers": true, "ads": true, "allowedSites": ["example.com"] }
+}
+```
+
+`allowedSites` holds only host names the user switched blocking off for.
+
 ---
 
 ## Security Considerations
 
-- The extension makes **no outbound network requests** (AGENTS.md rule 4).
+- The extension makes **no outbound network requests** (AGENTS.md rule 4). Blocking is done by the browser from rule files shipped inside the extension; the extension never sees the requests it blocks.
 - All data is stored locally in `browser.storage.local`.
 - The background accepts messages only from this extension (`sender.id`), and
   detection batches only from a tab. The site identity is taken from

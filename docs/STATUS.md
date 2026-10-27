@@ -1,6 +1,6 @@
 # ShadowShield — Status
 
-_Last updated: Quick-wins batch 1._
+_Last updated: Tracker and ad blocking added._
 
 ## Completed
 - **0.1** Tooling: esbuild build, ESLint, Prettier, CI, `AGENTS.md`, docs skeleton.
@@ -17,6 +17,12 @@ _Last updated: Quick-wins batch 1._
 - **Quick-wins batch 1** Dependency-free tests, iframe attribution, WebRTC
   protection, redesigned popup, test-page server, verification script and docs.
 
+- **Tracker and ad blocking** (Network lane) `src/blocking/`: EasyPrivacy and
+  EasyList converted to browser rules, switches in the popup, test pages, unit
+  tests, docs and decision 0007. Checked in Chromium; **still needs a manual check
+  in Firefox** (load `dist/manifest.json`, open `tests/pages/tracker-test/` and
+  `ad-test/`, try the switches).
+
 ## Key decisions
 - Firefox is the primary target; Chromium compatibility only where cheap.
 - Hooks must go through `core/hook.js`; modules never import each other.
@@ -27,6 +33,12 @@ _Last updated: Quick-wins batch 1._
 See "Known Issues" in `docs/ARCHITECTURE.md` (stealth hooks, WebGL prototype
 patching, workers, Date/locale coherence, `deviceMemory` on Firefox, and
 same-origin about:blank coherence).
+
+## Open issues: blocking
+- Firefox only shows the blocked count when `extensions.dnr.feedback` is `true`.
+- No cosmetic filtering (hiding empty ad space) and no YouTube ad blocking; see
+  `docs/modules/blocking.md`.
+- The lists go stale; rerun `npm run build:rules` now and then.
 
 ## Next step
 Quick-wins batch 1 is complete. The next recommended work is **Phase 1 stealth
