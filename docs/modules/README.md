@@ -22,3 +22,4 @@ Start a new page by copying [`_TEMPLATE.md`](_TEMPLATE.md).
 | client-hints | [client-hints.md](client-hints.md) | No (detect only, Chromium) |
 | audio | [audio.md](audio.md) | No (detect only) |
 | webrtc-protection | [webrtc-protection.md](webrtc-protection.md) | Background privacy setting |
+| blocking (`src/blocking/`) | [blocking.md](blocking.md) | Blocks trackers and ads (network rules) |

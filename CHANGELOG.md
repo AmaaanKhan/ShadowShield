@@ -7,6 +7,10 @@ in every pull request that changes what the extension does or how it is built.
 ## Unreleased
 
 ### Added
+- Tracker and ad blocking: EasyPrivacy and EasyList turned into browser rules,
+  with switches for trackers, ads and the current site in the popup, a blocked
+  count, `npm run build:rules` and `npm run check-url`, test pages and unit tests
+  (see `docs/modules/blocking.md`).
 - "Clear data" button in the popup.
 - Iframe coverage with embedded-source attribution, WebRTC protection settings,
   dependency-free unit tests, a test-page server and a verify script.

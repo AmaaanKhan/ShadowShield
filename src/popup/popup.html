@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShadowShield</title>
     <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="blocking.css">
 </head>
 <body>
     <header class="app-header">
@@ -30,6 +31,34 @@
                 <span id="site-origin" class="muted"></span>
             </div>
             <div id="current-site"></div>
+        </section>
+
+        <section class="card" aria-labelledby="blocking-title">
+            <h2 id="blocking-title">Trackers and ads</h2>
+            <p id="blocking-summary" class="blocking-summary">Checking this page...</p>
+            <p id="blocking-error" class="message error" hidden></p>
+            <label class="setting-row" for="blocking-trackers-toggle">
+                <span>
+                    <strong>Block trackers</strong>
+                    <small>Analytics, tracking pixels and similar.</small>
+                </span>
+                <input id="blocking-trackers-toggle" type="checkbox">
+            </label>
+            <label class="setting-row" for="blocking-ads-toggle">
+                <span>
+                    <strong>Block ads</strong>
+                    <small>Requests to known ad networks.</small>
+                </span>
+                <input id="blocking-ads-toggle" type="checkbox">
+            </label>
+            <label class="setting-row" for="blocking-site-toggle">
+                <span>
+                    <strong>Block on this site</strong>
+                    <small id="blocking-site-name"></small>
+                </span>
+                <input id="blocking-site-toggle" type="checkbox">
+            </label>
+            <small id="blocking-lists" class="muted blocking-lists"></small>
         </section>
 
         <section class="card" aria-labelledby="read-title">
@@ -76,5 +105,6 @@
     </footer>
 
     <script src="popup.js"></script>
+    <script src="blocking.js"></script>
 </body>
 </html>

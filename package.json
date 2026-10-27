@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "build":   "node scripts/build.mjs",
+    "build:rules": "node scripts/build-rules.mjs",
+    "check-url": "node scripts/check-url.mjs",
     "dev":     "node scripts/build.mjs --dev",
     "lint": "npm run build && eslint src/ && web-ext lint --source-dir=dist/ --warnings-as-errors",
     "lint:src": "eslint src/",
