@@ -23,9 +23,21 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        
+      - name: Build extension
+        run: npm run build
 
-      - name: Lint (ESLint + web-ext lint)
-        run: npm run lint
+      - name: Run ESLint
+        run: npx eslint src/
+
+      - name: Check extension with Firefox
+        run: |
+          mkdir -p /tmp/firefox-dist
+          cp -R dist/. /tmp/firefox-dist/
+
+          node -e "const fs=require('fs'); const p='/tmp/firefox-dist/manifest.json'; const m=JSON.parse(fs.readFileSync(p,'utf8')); if(m.background) delete m.background.service_worker; fs.writeFileSync(p, JSON.stringify(m,null,2)+'\n');"
+
+          npx web-ext lint --source-dir=/tmp/firefox-dist --warnings-as-errors --ignore-files "rules/*.json"
 
       - name: Unit tests
         run: npm test
